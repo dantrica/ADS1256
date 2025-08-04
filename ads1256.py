@@ -1,7 +1,7 @@
 import spidev
 import RPi.GPIO as GPIO
 import time
-from ads1256.constants import ADS1256Constants as ADSC  # noqa: N817
+from constants import ADS1256Constants as ADSC  # noqa: N817
 
 class ADS1256:
     def __init__(
