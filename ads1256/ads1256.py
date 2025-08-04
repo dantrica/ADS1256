@@ -1,43 +1,61 @@
 import spidev
-from gpiod import LineSettings, request_lines
-from gpiod.line import Direction, Value
+import RPi.GPIO as GPIO
 
 from ads1256.constants import ADS1256Constants as ADSC  # noqa: N817
 
 
 class ADS1256:
+    #def __init__(
+    #    self,
+    #    spi_bus: int = 0,
+    #    spi_device: int = 0,
+    #    spi_frequency: int = 976563,
+    #    data_ready_pin: int = 22,
+    #    sync_pin: int = 27,
+    #):
+    #    self._spi_bus = spi_bus
+    #    self._spi_device = spi_device
+    #    self._spi_frequency = spi_frequency
+    #
+    #    self._cs_pin = 8 # default or allow as parameter
+    #    self._data_ready_pin = data_ready_pin
+    #    self._sync_pin = sync_pin
+    #
+    #    self.data_ready_timeout = 2
+    #    self.data_ready_polling_delay = 1e-6
+    #    self._v_ref = 2.5
+    #
+    #    self._configure_spi()
+    #    self._configure_gpio()
+    #
+    #    # Reset the chip to get into a known state.
+    #    self.reset()
+    #
+    #    # Read the chip ID to verify if the SPI communcication is working and
+    #    # check if the expected value is returned.
+    #    self.check_chip_id()
+    #
+    #    self.set_gain(1)
+
     def __init__(
         self,
-        spi_bus: int = 0,
-        spi_device: int = 0,
-        spi_frequency: int = 976563,
-        data_ready_pin: int = 22,
-        sync_pin: int = 27,
+        spi_bus=0,
+        spi_device=0,
+        spi_frequency=976563,
+        data_ready_pin=22,
+        sync_pin=27,
+        cs_pin=8,
+        v_ref=2.5
     ):
         self._spi_bus = spi_bus
         self._spi_device = spi_device
         self._spi_frequency = spi_frequency
 
-        self._cs_pin = 21
         self._data_ready_pin = data_ready_pin
         self._sync_pin = sync_pin
-
-        self.data_ready_timeout = 2
-        self.data_ready_polling_delay = 1e-6
-        self._v_ref = 2.5
-
-        self._configure_spi()
-        self._configure_gpio()
-
-        # Reset the chip to get into a known state.
-        self.reset()
-
-        # Read the chip ID to verify if the SPI communcication is working and
-        # check if the expected value is returned.
-        self.check_chip_id()
-
-        self.set_gain(1)
-
+        self._cs_pin = cs_pin
+        self._v_ref = v_ref
+    
     ###########################################################################
     #                             IO Configuration                            #
     ###########################################################################
@@ -56,46 +74,17 @@ class ADS1256:
         # The ADS1256 uses SPI MODE 1 this means CPOL=0 and CPHA=1.
         self.spi.mode = 0b01
 
-    def _configure_gpio(self) -> None:
-        """Configures the GPIO pins.
-        CS needs to be controlled manually using the enable_cs().
-        If the xfer method is used, there is not enough time between send and
-        receive. And spidev does not support pauses between byte transfers in
-        xfer. If spidev controls the cs pin it gets pulled up between send and
-        receive, deselecting the device. Testing showed that this behavior is
-        not allowed and the ADC is not responding anymore.
-
-        Args:
-            None
-        Returns:
-            None
-        """
-        self.gpio = request_lines(
-            '/dev/gpiochip0',
-            consumer='ads1256',
-            config={
-                self._data_ready_pin: LineSettings(direction=Direction.INPUT),
-                self._sync_pin: LineSettings(
-                    direction=Direction.OUTPUT, output_value=Value.ACTIVE
-                ),
-                self._cs_pin: LineSettings(
-                    direction=Direction.OUTPUT, output_value=Value.ACTIVE
-                ),
-            },
-        )
+    def _configure_gpio(self):
+        """Configures GPIO pins using RPi.GPIO"""
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self._cs_pin, GPIO.OUT)
+        GPIO.setup(self._data_ready_pin, GPIO.IN)
+        GPIO.setup(self._sync_pin, GPIO.OUT)
+        GPIO.output(self._cs_pin, GPIO.HIGH)
+        GPIO.output(self._sync_pin, GPIO.HIGH)
 
     def enable_cs(self, state: bool) -> None:
-        """Sets the CS pin to the specified state.
-        Since CS is active low, setting state to false will turn it off.
-
-        Args:
-            state (bool): The state of the CS pin.
-        Returns:
-            None
-        """
-        self.gpio.set_value(
-            self._cs_pin, Value.INACTIVE if state else Value.ACTIVE
-        )
+        GPIO.output(self._cs_pin, GPIO.HIGH if state else GPIO.LOW)
 
     ###########################################################################
     #                               R/W Register                              #
@@ -137,10 +126,11 @@ class ADS1256:
         self.enable_cs(False)
 
     def wait_for_data_ready_low(self):
-        while True:
-            value = self.gpio.get_value(self._data_ready_pin)
-            if value == Value.INACTIVE:
-                break
+        timeout = time.time() + self.data_ready_timeout
+        while GPIO.input(self._data_ready_pin):
+            if time.time() > timeout:
+                raise TimeoutError("DRDY timeout.")
+            time.sleep(self.data_ready_polling_delay)
 
     ###########################################################################
     #                                 Control                                 #
@@ -189,8 +179,9 @@ class ADS1256:
         self.write_register(ADSC.REG_DRATE, data_rate)
 
     def sync(self):
-        self.gpio.set_value(self._sync_pin, Value.INACTIVE)
-        self.gpio.set_value(self._sync_pin, Value.ACTIVE)
+        GPIO.output(self._sync_pin, GPIO.LOW)
+        time.sleep(1e-5)
+        GPIO.output(self._sync_pin, GPIO.HIGH)
 
     def set_input(self, input_1: int, input_2: int) -> None:
         """Configures multiplexer to connect any pair of pins as a
