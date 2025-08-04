@@ -2,24 +2,24 @@
 
 A python library to communicate with the ADS1256 analog to digital converter from Texas Instruments.
 
-__init__: Sets up SPI interface with ADS1256, SPI mode and speed. Defines command and register constants. Calls init_adc() to initialize the chip.
+Initialization: Create the ADS1256 instance with SPI bus/device, frequency, GPIO pins for CS, DRDY, and SYNC, and reference voltage.
 
-send_command(cmd): Sends a single-byte SPI command to ADS1256.
+_configure_spi() and _configure_gpio(): Set up SPI interface and GPIO pins for communication and control signals.
 
-write_register(reg, value): Writes a byte value to a register reg using SPI commands.
+reset(): Resets the ADS1256 to a known default state.
 
-read_register(reg): Reads a byte from register reg.
+check_chip_id(): Verifies the chip ID to confirm communication is correct.
 
-init_adc(): Initializes the ADC chip by waking it up, configuring status and ADCON registers, setting default data rate (1000 SPS), and running self-calibration.
+set_gain(1): Sets the programmable gain amplifier to unity gain.
 
-set_data_rate(rate): Changes sample rate of ADC to one of predefined supported rates.
+self_calibration(): Performs internal self-calibration for more accurate readings.
 
-set_channel(channel): Selects the input channel (0-7) on the multiplexer, always using AINCOM as negative input (single-ended input).
+set_data_rate(): Sets the sampling rate; choose from constants (e.g., ADSC.DRATE_1000_SPS).
 
-read_adc(): Requests a reading from the ADC, reads 3 bytes, converts it from 24-bit two’s complement to signed integer.
+set_input(): Configures the multiplexer for input channels. Here, single-ended mode uses POS_AINx with NEG_AINCOM.
 
-read_channel(channel): Sets the channel and returns a single ADC reading from it.
+sync(): Synchronizes conversions after changing inputs to get valid data.
 
-read_multiple_channels(channels): Reads a list of channels sequentially, returns a dictionary mapping channel to value.
+read_value(): Reads the raw 24-bit signed ADC value.
 
-close(): Closes SPI connection cleanly.
+read_voltage(): Converts raw ADC value into voltage based on gain and reference voltage.
