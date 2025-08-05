@@ -7,8 +7,8 @@ class ADS1256:
     def __init__(
         self,
         spi_bus=0,
-        spi_device=0,
-        spi_frequency=976563,
+        spi_device=1,
+        spi_frequency=100000,
         data_ready_pin=22,
         sync_pin=27,
         cs_pin=8,
@@ -19,7 +19,7 @@ class ADS1256:
         self._spi_frequency = spi_frequency
 
         self._data_ready_pin = data_ready_pin
-        self._sync_pin = sync_pin
+        #self._sync_pin = sync_pin
         self._cs_pin = cs_pin
         self._v_ref = v_ref
 
@@ -49,9 +49,9 @@ class ADS1256:
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self._cs_pin, GPIO.OUT)
         GPIO.setup(self._data_ready_pin, GPIO.IN)
-        GPIO.setup(self._sync_pin, GPIO.OUT)
+        #GPIO.setup(self._sync_pin, GPIO.OUT)
         GPIO.output(self._cs_pin, GPIO.HIGH)
-        GPIO.output(self._sync_pin, GPIO.HIGH)
+        #GPIO.output(self._sync_pin, GPIO.HIGH)
 
     def enable_cs(self, state: bool) -> None:
         GPIO.output(self._cs_pin, GPIO.LOW if state else GPIO.HIGH)
@@ -128,9 +128,10 @@ class ADS1256:
         self.write_register(ADSC.REG_DRATE, data_rate)
 
     def sync(self):
-        GPIO.output(self._sync_pin, GPIO.LOW)
-        time.sleep(1e-5)
-        GPIO.output(self._sync_pin, GPIO.HIGH)
+        pass
+        #GPIO.output(self._sync_pin, GPIO.LOW)
+        #time.sleep(1e-5)
+        #GPIO.output(self._sync_pin, GPIO.HIGH)
 
     def set_input(self, input_1: int, input_2: int) -> None:
         self.write_register(ADSC.REG_MUX, input_1 | input_2)
@@ -151,3 +152,4 @@ class ADS1256:
     def read_voltage(self) -> float:
         value = self.read_value()
         return value * self._volt_per_digit
+
