@@ -1,8 +1,11 @@
 # ADS1256
 
-A python library to communicate with the ADS1256 analog to digital converter from Texas Instruments.
+A Python library to communicate with the ADS1256 (by Texas Instruments) and the Raspberry Pi 4 B.
 
 Initialization: Create the ADS1256 instance with SPI bus/device, frequency, GPIO pins for CS, DRDY, and SYNC, and reference voltage.
+
+
+Methods: 
 
 _configure_spi() and _configure_gpio(): Set up SPI interface and GPIO pins for communication and control signals.
 
@@ -23,3 +26,13 @@ sync(): Synchronizes conversions after changing inputs to get valid data.
 read_value(): Reads the raw 24-bit signed ADC value.
 
 read_voltage(): Converts raw ADC value into voltage based on gain and reference voltage.
+
+Suggested PINs: 
+ADS1256	pins to Raspberry Pi 4 B
+CS	to GPIO8
+DRDY to	GPIO22
+MISO	to GPIO9
+MOSI	to GPIO10
+SCLK	to GPIO11
+VCC	5V to (pin 2)
+GND	to GND (pins 9, 25, 39, 6, 14, 20, 30, and 34)
