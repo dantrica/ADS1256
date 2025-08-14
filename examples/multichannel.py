@@ -32,8 +32,8 @@ adc.set_data_rate(ADSC.DRATE_1000)  # Choose sample rate (1000 SPS here)
 # ----------------------- Multi-Channel Acquisition ---------------------
 
 # Configure acquisition parameters
-channels = [0, 1, 2]  # Read AIN0, AIN1, AIN2
-duration_sec = 5      # Total acquisition time in seconds
+channels = [0, 1, 2]      # Read AIN0, AIN1, AIN2
+duration_sec = 10         # Total acquisition time in seconds
 sampling_interval = 0.01  # 10 ms between reads (100 Hz)
 num_samples = int(duration_sec / sampling_interval)
 
@@ -51,6 +51,7 @@ for i in range(num_samples):
         # Set multiplexer to AINx vs AINCOM
         adc.set_input(getattr(ADSC, f"POS_AIN{ch}"), ADSC.NEG_AINCOM)
         voltage = adc.read_voltage()
+        adc.sync(1e-3) # this delay avoids noise problems on signals
         data[ch].append(voltage)
 
     # Wait for next sample time
