@@ -34,5 +34,12 @@ DRDY to	GPIO22
 MISO	to GPIO9
 MOSI	to GPIO10
 SCLK	to GPIO11
+
+# Notes:
+
+- This code avoids real-time plotting to ensure maximum acquisition speed.
+- To perform real-time plotting, use matplotlib's FuncAnimation or a GUI framework, but that reduces acquisition speed.
+- For higher sample rates, reduce SPI frequency cautiously and buffer reads.
+- All constants for channels, gain, and sample rate are from ADS1256Constants.
 VCC	5V to (pin 2)
 GND	to GND (pins 9, 25, 39, 6, 14, 20, 30, and 34)
