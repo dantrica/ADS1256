@@ -82,5 +82,4 @@ plt.show()
 
 # Clean up SPI and GPIO resources
 adc.spi.close()
-import RPi.GPIO as GPIO
 GPIO.cleanup()
