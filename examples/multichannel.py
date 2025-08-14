@@ -24,7 +24,6 @@ adc = ADS1256(
 
 # Enable Buffer. True Recommended for signals with high impedance (Resistors, Sensors), on the contrary False for signals with low impedance (Power Supplies)
 adc.enable_buffer(True)
-
 # Set gain (amplification) and sample rate
 adc.set_gain(1)  # Gain options: 1,2,4,8,16,32,64
 adc.set_data_rate(ADSC.DRATE_1000)  # Choose sample rate (1000 SPS here)
@@ -73,13 +72,6 @@ plt.legend()
 plt.grid(True)
 plt.tight_layout()
 plt.show()
-
-# -------------------------- Notes -----------------------------
-# - This code avoids real-time plotting to ensure maximum acquisition speed.
-# - To perform real-time plotting, use matplotlib's FuncAnimation or a GUI framework,
-#   but that reduces acquisition speed.
-# - For higher sample rates, reduce SPI frequency cautiously and buffer reads.
-# - All constants for channels, gain, and sample rate are from ADS1256Constants.
 
 # Clean up SPI and GPIO resources
 adc.spi.close()
