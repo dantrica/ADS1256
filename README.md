@@ -5,7 +5,7 @@ A Python library to communicate with the ADS1256 (by Texas Instruments) and the 
 Initialization: Create the ADS1256 instance with SPI bus/device, frequency, GPIO pins for CS, DRDY, and SYNC, and reference voltage.
 
 
-Methods: 
+## Methods: 
 
 _configure_spi() and _configure_gpio(): Set up SPI interface and GPIO pins for communication and control signals.
 
@@ -27,7 +27,8 @@ read_value(): Reads the raw 24-bit signed ADC value.
 
 read_voltage(): Converts raw ADC value into voltage based on gain and reference voltage.
 
-Suggested PINs: 
+## Suggested PINs: 
+
 ADS1256	pins to Raspberry Pi 4 B
 CS	to GPIO8
 DRDY to	GPIO22
@@ -35,7 +36,7 @@ MISO	to GPIO9
 MOSI	to GPIO10
 SCLK	to GPIO11
 
-# Notes:
+## Notes:
 
 - This code avoids real-time plotting to ensure maximum acquisition speed.
 - To perform real-time plotting, use matplotlib's FuncAnimation or a GUI framework, but that reduces acquisition speed.
