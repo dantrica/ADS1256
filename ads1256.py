@@ -127,11 +127,25 @@ class ADS1256:
     def set_data_rate(self, data_rate):
         self.write_register(ADSC.REG_DRATE, data_rate)
 
-    def sync(self):
-        pass
-        #GPIO.output(self._sync_pin, GPIO.LOW)
-        #time.sleep(1e-5)
-        #GPIO.output(self._sync_pin, GPIO.HIGH)
+    def sync(self, delay):
+        """Sends SYNC and WAKEUP commands to reset the conversion process."""
+        self.enable_cs(True)
+        self.spi.writebytes([ADSC.CMD_SYNC])   # Send SYNC (0xFC)
+        self.enable_cs(False)
+        time.sleep(delay)  # Small delay to allow sync to take effect
+
+        self.enable_cs(True)
+        self.spi.writebytes([ADSC.CMD_WAKEUP])  # Send WAKEUP (0x00)
+        self.enable_cs(False)
+        self.wait_for_data_ready_low()  # Wait until DRDY is low
+
+    def enable_buffer(self, enabled=True):
+        status = self.read_register(ADSC.REG_STATUS)
+        if enabled:
+            status |= 0x02  # Set bit 1
+        else:
+            status &= ~0x02  # Clear bit 1
+        self.write_register(ADSC.REG_STATUS, status)
 
     def set_input(self, input_1: int, input_2: int) -> None:
         self.write_register(ADSC.REG_MUX, input_1 | input_2)
